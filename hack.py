@@ -127,9 +127,9 @@ class Instabrute():
 
             UseProxy = Input('[*] Você deseja usar um proxy (s/n): ').upper()
             if UseProxy == 'S' or UseProxy == 'SIM':
-  print('[$] Tentando usar um proxy após a falha.')
-                self.randomProxy()  # Verifique isso, pode conter erros
-            return False
+              print('[$] Tentando usar um proxy após a falha.')
+              self.randomProxy()  # Verifique isso, pode conter erros
+              return False
 
         # Retorna a sessão se a senha estiver correta
         if data['authenticated'] == True:
