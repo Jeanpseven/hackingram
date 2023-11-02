@@ -125,7 +125,7 @@ class Instabrute():
 
         # Update token after login to the site
         r = sess.post('https://www.instagram.com/accounts/login/ajax/', data={'username': self.username, 'password': password}, allow_redirects=True)
-        sess.headers.update({'X-CSRFToken': r.cookies.get_dict()['csrftoken'])
+        sess.headers.update({'X-CSRFToken': r.cookies.get_dict()['csrftoken']})
 
         # Parse the response
  data = json.loads(r.text)
